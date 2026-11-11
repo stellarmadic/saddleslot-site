@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>SaddleSlot</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800&family=DM+Sans:wght@400;500;600&display=swap">
+<style>
+:root {
+  --bg: #FBF7F0; --card: #FEFCF9; --fg: #2C2420; --muted: #6E625C;
+  --saddle: #6B3A2A; --saddle-hover: #4A2518; --sage: #7A8B6F; --sage-light: #E8EDE4;
+  --gold: #C8943E; --dust: #D4C4B0;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1C1714; --card: #252019; --fg: #F3ECE3; --muted: #A89B90;
+    --saddle: #D9A07F; --saddle-hover: #EBBA9F; --sage: #A3B597; --sage-light: #2E3429;
+    --gold: #E0B26A; --dust: #4A3E36;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #1C1714; --card: #252019; --fg: #F3ECE3; --muted: #A89B90;
+  --saddle: #D9A07F; --saddle-hover: #EBBA9F; --sage: #A3B597; --sage-light: #2E3429;
+  --gold: #E0B26A; --dust: #4A3E36;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--fg);
+  font: 16px/1.6 "DM Sans", system-ui, sans-serif;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0 56px;
+}
+h1, h2, h3 { font-family: "Outfit", system-ui, sans-serif; text-wrap: balance; line-height: 1.15; margin: 0; }
+h1 { font-size: clamp(2.1rem, 6vw, 3.4rem); font-weight: 800; }
+h2 { font-size: clamp(1.5rem, 4vw, 2rem); font-weight: 700; }
+h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 6px; }
+p { margin: 0; }
+.wrap { max-width: 980px; margin: 0 auto; }
+.muted { color: var(--muted); }
+.nav { display: flex; justify-content: space-between; align-items: center; padding: 18px 0; gap: 12px; flex-wrap: wrap; }
+.brand { display: flex; align-items: center; gap: 10px; font: 800 1.2rem "Outfit", system-ui, sans-serif; color: var(--saddle); }
+.mark {
+  width: 34px; height: 34px; border-radius: 10px; background: var(--saddle); color: var(--bg);
+  display: grid; place-items: center; font: 800 1.05rem "Outfit", system-ui, sans-serif;
+}
+.hero { padding: 40px 0 28px; display: grid; gap: 22px; }
+.hero p.lead { font-size: 1.15rem; color: var(--muted); max-width: 40em; }
+.eyebrow { font-size: 0.8rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--sage); }
+.ctas { display: flex; gap: 12px; flex-wrap: wrap; }
+.btn {
+  font: 600 1rem "DM Sans", system-ui, sans-serif; border-radius: 12px; padding: 13px 20px;
+  border: 1.5px solid var(--saddle); background: var(--card); color: var(--saddle); cursor: pointer; text-decoration: none; display: inline-block;
+}
+.btn.primary { background: var(--saddle); color: var(--bg); }
+.btn.primary:hover { background: var(--saddle-hover); border-color: var(--saddle-hover); }
+.btn:focus-visible, .tab:focus-visible { outline: 3px solid var(--sage); outline-offset: 2px; }
+.value {
+  display: grid; gap: 14px; grid-template-columns: 1fr;
+  margin: 18px 0 8px;
+}
+@media (min-width: 720px) { .value { grid-template-columns: repeat(3, 1fr); } }
+.card {
+  background: var(--card); border: 1px solid var(--dust); border-radius: 16px; padding: 22px; min-width: 0;
+}
+.section { padding: 40px 0 8px; }
+.tabs { display: flex; gap: 6px; background: var(--sage-light); padding: 4px; border-radius: 14px; margin: 18px 0 18px; max-width: 420px; }
+.tab {
+  flex: 1; border: 0; background: none; padding: 11px; border-radius: 10px; cursor: pointer;
+  font: 600 1rem "DM Sans", system-ui, sans-serif; color: var(--muted);
+}
+.tab[aria-selected="true"] { background: var(--card); color: var(--saddle); box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+.panel-list { display: grid; gap: 14px; grid-template-columns: 1fr; }
+@media (min-width: 720px) { .panel-list { grid-template-columns: 1fr 1fr; } }
+.panel-list li { list-style: none; }
+ul.points { margin: 0; padding: 0; display: grid; gap: 12px; }
+ul.points li { background: var(--card); border: 1px solid var(--dust); border-radius: 14px; padding: 16px 18px; }
+ul.points strong { display: block; font: 700 1.02rem "Outfit", system-ui, sans-serif; margin-bottom: 2px; }
+.steps { counter-reset: step; display: grid; gap: 14px; grid-template-columns: 1fr; margin-top: 18px; }
+@media (min-width: 720px) { .steps { grid-template-columns: repeat(3, 1fr); } }
+.steps .card { position: relative; padding-top: 22px; }
+.steps .num {
+  font: 800 0.85rem "Outfit", system-ui, sans-serif; color: var(--gold); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 6px; display: block;
+}
+.closing {
+  margin-top: 40px; background: var(--sage-light); border-radius: 18px; padding: 28px; display: grid; gap: 14px;
+}
+.note { font-size: 0.9rem; color: var(--muted); }
+.hidden { display: none !important; }
+.foot { margin-top: 36px; font-size: 0.85rem; color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <nav class="nav" aria-label="Site">
+    <div class="brand"><span class="mark">S</span>SaddleSlot</div>
+    <span class="note">Early preview</span>
+  </nav>
+
+  <header class="hero">
+    <p class="eyebrow">Trail rides, booked and matched</p>
+    <h1>Book the trail. Get the horse that fits you.</h1>
+    <p class="lead">SaddleSlot connects trail-ride barns with riders. Barns list their horses and ride times. Riders pick a spot, sign the waiver once, and are matched to a horse by weight, height and experience.</p>
+    <div class="ctas">
+      <button class="btn primary" data-go="barn">I run a barn</button>
+      <button class="btn" data-go="rider">I want to ride</button>
+    </div>
+  </header>
+
+  <section class="value" aria-label="Why SaddleSlot">
+    <div class="card">
+      <h3>Stop losing bookings in the barn</h3>
+      <p class="muted">Riders book online at any hour. A request doesn't go unanswered because you were mucking stalls or on the phone with a horse.</p>
+    </div>
+    <div class="card">
+      <h3>The right horse, every time</h3>
+      <p class="muted">Weight, height and experience decide the match, so a first-timer never ends up on the big horse.</p>
+    </div>
+    <div class="card">
+      <h3>Ready before the ride</h3>
+      <p class="muted">Each day, the barn gets a tack-ready list: who is riding, which horse, and what tack it needs.</p>
+    </div>
+  </section>
+
+  <section class="section" id="who" aria-labelledby="whoTitle">
+    <h2 id="whoTitle">Built for both sides of the saddle</h2>
+    <div class="tabs" role="tablist" aria-label="Choose a view">
+      <button class="tab" role="tab" id="tabBarn" aria-selected="true" aria-controls="panelBarn" data-tab="barn">Barn owners</button>
+      <button class="tab" role="tab" id="tabRider" aria-selected="false" aria-controls="panelRider" data-tab="rider">Riders</button>
+    </div>
+
+    <div id="panelBarn" role="tabpanel" aria-labelledby="tabBarn">
+      <ul class="points">
+        <li><strong>Sign up with just a name</strong>Add horses, ride times and details whenever it suits you. Nothing is required up front.</li>
+        <li><strong>Describe your horses honestly</strong>Set weight and height limits, experience level and temperament, so riders are matched correctly.</li>
+        <li><strong>Riders book while you work</strong>Bookings come in at any hour, so you don't lose a request while you're busy in the barn.</li>
+        <li><strong>Choose how riders book</strong>Take online bookings, or keep it simple with a call-or-email listing.</li>
+        <li><strong>Your cancellation policy, in your words</strong>Riders see your terms before they confirm.</li>
+        <li><strong>A tack-ready list for every ride</strong>Print it in the morning and know what each horse needs.</li>
+        <li><strong>Waivers on file</strong>Signed waivers are stored with each booking, and minors need a guardian signature.</li>
+      </ul>
+    </div>
+
+    <div id="panelRider" role="tabpanel" aria-labelledby="tabRider" class="hidden">
+      <ul class="points">
+        <li><strong>Find barns near you</strong>See barns by distance, with their hours, locations and how to book.</li>
+        <li><strong>Pick a time that works</strong>See how many spots are left in each ride before you choose.</li>
+        <li><strong>Enter everyone in your group</strong>Add each rider’s height, weight, age and riding experience once, for the whole party.</li>
+        <li><strong>Get matched to a horse</strong>You are placed on a horse that fits your size and riding level, with its temperament shown.</li>
+        <li><strong>Sign the waiver once</strong>Your signed waiver is kept with your booking.</li>
+        <li><strong>Know your refund before you cancel</strong>Your refund amount is shown before you confirm.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="howTitle">
+    <h2 id="howTitle">How it works</h2>
+    <div class="steps">
+      <div class="card"><span class="num">Step 1</span><h3>Find a barn</h3><p class="muted">Search near you, then open a barn to see its horses, hours and ride times.</p></div>
+      <div class="card"><span class="num">Step 2</span><h3>Pick your ride</h3><p class="muted">Choose a day and time, add your group, and sign the waiver.</p></div>
+      <div class="card"><span class="num">Step 3</span><h3>Meet your horse</h3><p class="muted">You arrive knowing which horse you ride, and the barn already has your tack ready.</p></div>
+    </div>
+  </section>
+
+  <section class="closing" aria-labelledby="tryTitle">
+    <h2 id="tryTitle">See it in action</h2>
+    <p class="muted">The full sample walks through the barn side and the rider side, with made-up barns, horses and riders. Nothing is booked or sent.</p>
+    <div><a class="btn primary" href="https://claude.ai/artifact/4PLJbp8a5Eim4mRmNhmt6P" target="_blank" rel="noopener">Open the full sample</a></div>
+    <p class="note">The sample is private until its owner shares it. If the link does not open, ask for access.</p>
+  </section>
+
+  <p class="foot">SaddleSlot is an early preview with sample data. Waivers shown are placeholders, not legal advice.</p>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  const tabs = document.querySelectorAll('.tab');
+  const panels = { barn: document.getElementById('panelBarn'), rider: document.getElementById('panelRider') };
+
+  function show(which) {
+    tabs.forEach((t) => t.setAttribute('aria-selected', String(t.dataset.tab === which)));
+    panels.barn.classList.toggle('hidden', which !== 'barn');
+    panels.rider.classList.toggle('hidden', which !== 'rider');
+  }
+
+  tabs.forEach((t) => t.addEventListener('click', () => show(t.dataset.tab)));
+
+  document.querySelectorAll('[data-go]').forEach((b) => b.addEventListener('click', () => {
+    show(b.dataset.go);
+    document.getElementById('who').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }));
+})();
+</script>
+</body>
+</html>
