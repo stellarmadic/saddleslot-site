@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Set up your barn · SaddleSlot</title>
+<meta name="description" content="Create your SaddleSlot account and barn. Add horses and ride times whenever you're ready.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800&family=DM+Sans:wght@400;500;600&display=swap">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.min.js"></script>
+<style>
+:root {
+  --bg: #FBF7F0; --card: #FEFCF9; --fg: #2C2420; --muted: #6E625C;
+  --saddle: #6B3A2A; --saddle-hover: #4A2518; --sage: #7A8B6F; --sage-light: #E8EDE4;
+  --dust: #D4C4B0; --danger: #9B3B2E; --ok: #3D6B3A;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1C1714; --card: #252019; --fg: #F3ECE3; --muted: #A89B90;
+    --saddle: #D9A07F; --saddle-hover: #EBBA9F; --sage: #A3B597; --sage-light: #2E3429;
+    --dust: #4A3E36; --danger: #E08A7A; --ok: #9CC596;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #1C1714; --card: #252019; --fg: #F3ECE3; --muted: #A89B90;
+  --saddle: #D9A07F; --saddle-hover: #EBBA9F; --sage: #A3B597; --sage-light: #2E3429;
+  --dust: #4A3E36; --danger: #E08A7A; --ok: #9CC596;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--fg);
+  font: 16px/1.5 "DM Sans", system-ui, sans-serif;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 48px;
+}
+h1, h2 { font-family: "Outfit", system-ui, sans-serif; text-wrap: balance; line-height: 1.15; margin: 0 0 8px; }
+h1 { font-size: 1.8rem; font-weight: 800; }
+h2 { font-size: 1.25rem; font-weight: 700; }
+a { color: var(--saddle); }
+.wrap { max-width: 520px; margin: 0 auto; }
+.brand { display: flex; align-items: center; gap: 10px; font: 800 1.15rem "Outfit", system-ui, sans-serif; color: var(--saddle); text-decoration: none; margin-bottom: 18px; }
+.mark { width: 32px; height: 32px; border-radius: 10px; background: var(--saddle); color: var(--bg); display: grid; place-items: center; font: 800 1rem "Outfit", system-ui, sans-serif; }
+.card { background: var(--card); border: 1px solid var(--dust); border-radius: 16px; padding: 22px; margin-bottom: 14px; }
+.muted { color: var(--muted); }
+.small { font-size: 0.88rem; }
+label { display: block; font-size: 0.88rem; font-weight: 600; margin: 12px 0 4px; }
+input {
+  width: 100%; font: inherit; padding: 11px 12px; border-radius: 10px;
+  border: 1.5px solid var(--dust); background: var(--bg); color: var(--fg);
+}
+input:focus-visible, .btn:focus-visible, .tab:focus-visible { outline: 3px solid var(--sage); outline-offset: 2px; }
+.btn {
+  font: 600 1rem "DM Sans", system-ui, sans-serif; border-radius: 12px; padding: 12px 18px; width: 100%;
+  border: 1.5px solid var(--saddle); background: var(--saddle); color: var(--bg); cursor: pointer; margin-top: 16px;
+}
+.btn:hover { background: var(--saddle-hover); border-color: var(--saddle-hover); }
+.btn:disabled { opacity: 0.55; cursor: default; }
+.btn.ghost { background: var(--card); color: var(--saddle); }
+.tabs { display: flex; gap: 6px; background: var(--sage-light); padding: 4px; border-radius: 12px; margin-bottom: 14px; }
+.tab { flex: 1; border: 0; background: none; padding: 10px; border-radius: 9px; cursor: pointer; font: 600 0.95rem "DM Sans", system-ui, sans-serif; color: var(--muted); }
+.tab[aria-selected="true"] { background: var(--card); color: var(--saddle); box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+.notice { border-radius: 10px; padding: 10px 14px; font-size: 0.9rem; margin-top: 12px; }
+.notice.err { background: rgba(155,59,46,0.1); color: var(--danger); }
+.notice.ok { background: var(--sage-light); color: var(--fg); }
+.steps { list-style: none; padding: 0; margin: 14px 0 0; display: grid; gap: 10px; }
+.steps li { display: flex; gap: 10px; align-items: flex-start; }
+.check { width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--dust); flex: none; display: grid; place-items: center; font-size: 0.75rem; color: var(--muted); }
+.check.done { background: var(--ok); border-color: var(--ok); color: var(--bg); }
+.hidden { display: none !important; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="brand" href="/"><span class="mark">S</span>SaddleSlot</a>
+
+  <!-- Sign in / create account -->
+  <section id="authView" class="card">
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" id="tabNew" aria-selected="true" data-mode="new">Create account</button>
+      <button class="tab" role="tab" id="tabIn" aria-selected="false" data-mode="in">Sign in</button>
+    </div>
+    <h1 id="authTitle" style="font-size:1.5rem;">Set up your barn</h1>
+    <p class="muted small" id="authSub">Start with your barn name and a zip code. You can add horses and ride times later.</p>
+
+    <form id="authForm" novalidate>
+      <div id="newFields">
+        <label for="barnName">Barn name</label>
+        <input id="barnName" autocomplete="organization" maxlength="120" placeholder="e.g. Sunny Trails Ranch">
+        <label for="zip">Zip code</label>
+        <input id="zip" inputmode="numeric" autocomplete="postal-code" maxlength="5" placeholder="e.g. 19958">
+      </div>
+      <label for="email">Email</label>
+      <input id="email" type="email" autocomplete="email" required>
+      <label for="password">Password</label>
+      <input id="password" type="password" autocomplete="new-password" minlength="8" required>
+      <p class="muted small" style="margin-top:6px;">At least 8 characters.</p>
+      <button class="btn" id="submitBtn" type="submit">Create account</button>
+    </form>
+    <div id="authMsg" aria-live="polite"></div>
+  </section>
+
+  <!-- After sign-up: checklist -->
+  <section id="doneView" class="card hidden">
+    <h2 id="doneTitle">Your barn is set up</h2>
+    <p class="muted small" id="doneSub">Next, add your horses and ride times. You can publish when you're ready.</p>
+    <ul class="steps">
+      <li><span class="check done" aria-hidden="true">✓</span><span>Account created</span></li>
+      <li><span class="check done" aria-hidden="true">✓</span><span>Barn created</span></li>
+      <li><span class="check" aria-hidden="true"></span><span>Add your horses</span></li>
+      <li><span class="check" aria-hidden="true"></span><span>Set your ride times</span></li>
+      <li><span class="check" aria-hidden="true"></span><span>Publish your booking page</span></li>
+    </ul>
+    <p class="muted small" style="margin-top:14px;">The owner dashboard is the next thing we build. Until then, we'll add your horses and ride times together.</p>
+    <button class="btn ghost" id="signOutBtn" type="button">Sign out</button>
+  </section>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  // Public (publishable) key. Safe in browser code. Row-level security protects the data.
+  const SUPABASE_URL = 'https://ilhoavcxilbeqlfexryf.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_8jBIClbUJH322I1jdaXx7g_rEDgK14t';
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+    auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
+  });
+
+  const $ = (id) => document.getElementById(id);
+  const PENDING_KEY = 'saddleslot_pending_barn';
+  let mode = 'new';
+
+  function msg(text, kind) {
+    $('authMsg').innerHTML = text ? '<div class="notice ' + (kind || 'err') + '"></div>' : '';
+    const el = $('authMsg').firstChild;
+    if (el) el.textContent = text;
+  }
+
+  function setMode(m) {
+    mode = m;
+    const isNew = m === 'new';
+    $('tabNew').setAttribute('aria-selected', String(isNew));
+    $('tabIn').setAttribute('aria-selected', String(!isNew));
+    $('newFields').classList.toggle('hidden', !isNew);
+    $('authTitle').textContent = isNew ? 'Set up your barn' : 'Sign in';
+    $('authSub').textContent = isNew
+      ? 'Start with your barn name and a zip code. You can add horses and ride times later.'
+      : 'Sign in to finish setting up your barn.';
+    $('submitBtn').textContent = isNew ? 'Create account' : 'Sign in';
+    $('password').autocomplete = isNew ? 'new-password' : 'current-password';
+    msg('');
+  }
+  document.querySelectorAll('.tab').forEach((t) => t.addEventListener('click', () => setMode(t.dataset.mode)));
+
+  function validEmail(e) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e); }
+
+  // Creates the barn once the user is signed in, if they don't have one yet.
+  async function ensureBarn(userId) {
+    const { data: links, error } = await sb.from('barn_members').select('barn_id').eq('user_id', userId).limit(1);
+    if (error) throw error;
+    if (links && links.length) return true;
+
+    let pending = null;
+    try { pending = JSON.parse(localStorage.getItem(PENDING_KEY) || 'null'); } catch (_) { pending = null; }
+    if (!pending || !pending.name) return false;
+
+    const { error: rpcErr } = await sb.rpc('create_barn', { p_name: pending.name, p_zip: pending.zip || null });
+    if (rpcErr) throw rpcErr;
+    try { localStorage.removeItem(PENDING_KEY); } catch (_) { /* private mode */ }
+    return true;
+  }
+
+  async function showDone(barnName) {
+    $('authView').classList.add('hidden');
+    $('doneView').classList.remove('hidden');
+    if (barnName) $('doneSub').textContent = barnName + ' is set up. Next, add your horses and ride times. You can publish when you’re ready.';
+  }
+
+  function showAuth() {
+    $('doneView').classList.add('hidden');
+    $('authView').classList.remove('hidden');
+  }
+
+  $('authForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = $('email').value.trim();
+    const password = $('password').value;
+    const name = $('barnName').value.trim();
+    const zip = $('zip').value.trim();
+
+    const btn = $('submitBtn');
+    btn.disabled = true;
+    msg('');
+    try {
+      // Already signed in but no barn yet: only the barn details are needed.
+      const { data: current } = await sb.auth.getSession();
+      if (mode === 'new' && current.session) {
+        if (name.length < 2) return msg('Enter your barn name.');
+        if (zip && !/^\d{5}$/.test(zip)) return msg('Zip code must be 5 digits.');
+        const { error: rpcErr } = await sb.rpc('create_barn', { p_name: name, p_zip: zip || null });
+        if (rpcErr) throw rpcErr;
+        return showDone(name);
+      }
+
+      if (!validEmail(email)) return msg('Enter a valid email address.');
+      if (password.length < 8) return msg('Password must be at least 8 characters.');
+      if (mode === 'new') {
+        if (name.length < 2) return msg('Enter your barn name.');
+        if (zip && !/^\d{5}$/.test(zip)) return msg('Zip code must be 5 digits.');
+      }
+      if (mode === 'new') {
+        try { localStorage.setItem(PENDING_KEY, JSON.stringify({ name, zip })); } catch (_) { /* private mode */ }
+        const { data, error } = await sb.auth.signUp({
+          email, password,
+          options: { emailRedirectTo: window.location.origin + '/signup.html' },
+        });
+        if (error) throw error;
+        if (!data.session) {
+          // Email confirmation is on: the barn is created after the owner confirms and comes back.
+          return msg('Check your email to confirm your account. Then come back to this page.', 'ok');
+        }
+        const created = await ensureBarn(data.user.id);
+        return created ? showDone(name) : msg('Your barn is still to be created. Sign in again to finish.');
+      } else {
+        const { data, error } = await sb.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        const created = await ensureBarn(data.user.id);
+        const { data: links } = await sb.from('barn_members').select('barn_id').eq('user_id', data.user.id).limit(1);
+        return (links && links.length) ? showDone() : msg('No barn on this account yet. Create one from the sign-up tab.');
+      }
+    } catch (err) {
+      msg(friendly(err));
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  function friendly(err) {
+    const m = (err && err.message) || '';
+    if (/already registered|already been registered|User already registered/i.test(m)) return 'An account already exists for this email. Sign in instead.';
+    if (/Invalid login credentials/i.test(m)) return 'Email or password is not right.';
+    if (/Barn name must be|Zip code must be|Please sign in/i.test(m)) return m;
+    if (/Failed to fetch|NetworkError/i.test(m)) return 'Connection problem. Check your internet and try again.';
+    return 'Something went wrong. Please try again.';
+  }
+
+  $('signOutBtn').addEventListener('click', async () => {
+    await sb.auth.signOut();
+    showAuth();
+    setMode('in');
+  });
+
+  // Returning owner: go straight to the checklist, or finish creating a barn left pending.
+  (async function init() {
+    const { data } = await sb.auth.getSession();
+    if (!data.session) return;
+    try {
+      const created = await ensureBarn(data.session.user.id);
+      const { data: links } = await sb.from('barn_members').select('barn_id').eq('user_id', data.session.user.id).limit(1);
+      if (links && links.length) showDone();
+      else if (!created) msg('Enter your barn name and zip code below to create your barn.', 'ok');
+    } catch (err) {
+      msg(friendly(err));
+    }
+  })();
+
+  setMode('new');
+})();
+</script>
+</body>
+</html>
